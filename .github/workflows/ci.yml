@@ -1,0 +1,26 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    name: Ruby ${{ matrix.ruby }}
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu ]
+        ruby: [ '3.0', 3.1, head ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true # 'bundle install' and cache
+      - name: Decrypt configuration
+        run: |
+          openssl aes-256-cbc -K $encrypted_0a3774eaecda_key -iv $encrypted_0a3774eaecda_iv -in test/config.json.enc -out test/config.json -d
+      - name: Run tests
+        run: bundle exec rake
